@@ -1,1 +1,20 @@
 .aider*
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS folder attributes
+Icon
+._*
+
+# macOS files that might appear on external disk
+.Spotlight-V100
+.Trashes
