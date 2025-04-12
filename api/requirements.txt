@@ -4,3 +4,4 @@ python-dotenv
 supabase
 python-jose[cryptography]
 passlib[bcrypt]
+ldap3

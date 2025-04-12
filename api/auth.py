@@ -3,7 +3,10 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import OAuth2AuthorizationCodeBearer
+import ldap3
+from .config import settings
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from .config import settings
 
@@ -15,7 +18,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 scheme
+# OAuth2 schemes
+oauth2_okta_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl=f"{settings.okta_issuer}/v1/authorize",
+    tokenUrl=f"{settings.okta_issuer}/v1/token",
+    client_id=settings.okta_client_id,
+    client_secret=settings.okta_client_secret
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Pydantic models
@@ -75,7 +84,23 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme), request: Request = None):
+    if settings.auth_mode == "okta":
+        return await get_current_user_okta(token)
+    elif settings.auth_mode == "ldap":
+        return await get_current_user_ldap(request)
+    else:
+        return await get_current_user_jwt(token)
+
+async def get_current_user_okta(token: str):
+    # Implement Okta token verification logic here
+    pass
+
+async def get_current_user_ldap(request: Request):
+    # Implement LDAP authentication logic here
+    pass
+
+async def get_current_user_jwt(token: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
